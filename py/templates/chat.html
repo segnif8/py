@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #messages {
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        #messages p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 100px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat Room</h1>
+    <div id="messages">
+        {% for message in messages %}
+            <p><strong>{{ message.sender }}</strong> [{{ message.timestamp }}]: {{ message.msg }}</p>
+        {% endfor %}
+    </div>
+    <div>
+        <input id="message" type="text" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+        </div>
+    <a href="/logout">Logout</a>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        var socket = io();
+
+        socket.on('message', function(data) {
+            var messages = document.getElementById('messages');
+            messages.innerHTML += '<p><strong>' + data.sender + '</strong> [' + data.timestamp + ']: ' + data.msg + '</p>';
+            messages.scrollTop = messages.scrollHeight; // Auto-scroll to the bottom
+        });
+
+        socket.on('private_message', function(data) {
+            alert('Private message from ' + data.sender + ': ' + data.msg);
+        });
+
+        function sendMessage() {
+            var messageInput = document.getElementById('message');
+            socket.emit('message', { message: messageInput.value, sender: '{{ username }}' });
+            messageInput.value = '';
+        }
+
+        function sendPrivateMessage() {
+            var messageInput = document.getElementById('message');
+            var recipientInput = document.getElementById('recipient');
+            socket.emit('private_message', { message: messageInput.value, recipient: recipientInput.value, sender: '{{ username }}' });
+            messageInput.value = '';
+            recipientInput.value = '';
+        }
+    </script>
+</body>
+</html>
